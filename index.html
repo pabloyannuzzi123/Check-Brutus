@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check del Complejo</title>
+<style>
+:root{color-scheme:light;--azul:#1F3B57;--verde:#2e9e5b;--rojo:#c0392b;--gris:#f2f4f7;--borde:#d5dbe3}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--gris);color:#1b1f24}
+header{background:var(--azul);color:#fff;padding:14px 16px}
+header h1{margin:0 0 10px;font-size:20px}
+.top{display:flex;gap:8px;flex-wrap:wrap}
+.top input{flex:1;min-width:140px;padding:10px;border-radius:8px;border:0;font-size:16px}
+main{max-width:640px;margin:0 auto;padding:14px}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.menu button{padding:16px 10px;font-size:16px;font-weight:600;border:2px solid var(--borde);border-radius:12px;background:#fff;color:var(--azul);cursor:pointer}
+.menu button.done{border-color:var(--verde);background:#e8f6ee}
+.menu button.warn{border-color:var(--rojo)}
+.menu small{display:block;font-weight:400;color:#5a6672;margin-top:4px}
+.menu small.r{color:var(--rojo);font-weight:600}
+.back{background:none;border:0;color:var(--azul);font-size:16px;font-weight:600;padding:6px 0;cursor:pointer}
+h2{margin:6px 0 4px;color:var(--azul)}
+.bar{height:8px;background:var(--borde);border-radius:6px;overflow:hidden;margin:8px 0 14px}
+.bar div{height:100%;background:var(--verde);width:0;transition:width .2s}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tabs button{flex:1;padding:12px;font-size:16px;font-weight:600;border:2px solid var(--borde);border-radius:10px;background:#fff;color:var(--azul);cursor:pointer}
+.tabs button.act{background:var(--azul);color:#fff;border-color:var(--azul)}
+.item{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:14px;margin-bottom:8px;font-size:17px;cursor:pointer;user-select:none}
+.item input{width:26px;height:26px;accent-color:var(--verde);flex:none}
+.item.on{background:#e8f6ee;border-color:var(--verde)}
+.cnt{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--borde);border-radius:10px;padding:10px 14px;margin-bottom:8px}
+.cnt .nm{flex:1;font-size:16px}
+.cnt .nm small{display:block;color:#5a6672}
+.cnt input{width:78px;padding:10px;font-size:18px;text-align:center;border:1px solid var(--borde);border-radius:8px}
+.cnt.ok{background:#e8f6ee;border-color:var(--verde)}
+.cnt.bad{background:#fdecea;border-color:var(--rojo)}
+.cnt .st{font-size:13px;font-weight:700;color:var(--rojo)}
+textarea{width:100%;min-height:80px;padding:10px;border:1px solid var(--borde);border-radius:10px;font-size:16px;font-family:inherit;margin-top:6px}
+.acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.acts button{flex:1;padding:14px;font-size:16px;font-weight:600;border:0;border-radius:10px;cursor:pointer}
+.wa{background:#25D366;color:#fff}.rs{background:#fff;border:1px solid var(--borde)!important;color:#a33}
+.hide{display:none}
+.man{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:6px 18px 14px;font-size:17px;line-height:1.5}
+.man h3{color:var(--azul);margin:14px 0 4px}
+.man ol{padding-left:22px;margin:6px 0}.man li{margin-bottom:10px}
+.man .nota{background:#fff6e0;border-left:4px solid #e0a800;padding:10px;border-radius:6px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>Check del Complejo</h1>
+  <div class="top">
+    <input type="text" id="quien" placeholder="Tu nombre">
+    <input type="date" id="fecha">
+  </div>
+</header>
+<main>
+  <div id="home"><div class="menu" id="menu"></div>
+    <div class="acts"><button class="wa" onclick="enviar()">Compartir resumen en el grupo de WhatsApp</button></div>
+  </div>
+  <div id="detail" class="hide"></div>
+</main>
+<script>
+const CAB=["Cocina limpia","Basura sacada","Bolsa nueva en tacho de basura","Heladera limpia","Piso limpio","Equipo de mate completo","Habitaciones limpias","Camas hechas (matrimonial, cucheta, individual)","Baño limpio","Papel higiénico repuesto","Servilletas repuestas","Shampoo repuesto","Enjuague repuesto","Jabón repuesto","Telarañas retiradas","Toallones dejados","Sobres de té repuestos","Sobres de café repuestos","Yerba y azúcar en el equipo de mate","Toalla dejada en el baño","Vidrios limpios","Deck de entrada limpio","Juego de patio limpio"];
+const CAB_C=[["Platos",6],["Copas",6],["Tazas",6],["Cuchillos",6],["Tenedores",6],["Cucharas",6],["Equipo de mate",1],["Utensilios de cocina (juego)",1],["Microondas",1],["Controles de TV",2],["Controles de aire",2]];
+const PIL=["Cloro granulado agregado","Alguicida agregado","Clarificante agregado","Pasó barrefondo","Limpió canasta skimmer","Limpió canasta de la bomba","Limpió filtro","Pintó rejas"];
+const DATA={
+ pileta_salon:{n:"Pileta salón",items:PIL},
+ pileta_cab:{n:"Pileta cabañas",items:PIL},
+ salon:{n:"Salón",items:["Piso limpio","Baño limpio","Cocina limpia","Parrillas limpias","Basura sacada","Toalla dejada","Jabón dejado","Juegos armados y completos","Termo encendido","Bolsa nueva de basura colocada","Vidrios limpios"],
+   count:[["Sillas",40],["Platos",40],["Copas",40],["Cuchillos",40],["Tenedores",40],["Manteles",null],["Tablones",null],["Equipo de mate",1],["Ollas",null],["Bandejas",null],["Paneras",null],["Jarras",null],["Cajas de fósforos",null],["Control de aire",1],["Control de TV",1]]},
+ cab1:{n:"Cabaña 1",items:CAB,count:CAB_C},cab2:{n:"Cabaña 2",items:CAB,count:CAB_C},
+ cab3:{n:"Cabaña 3",items:CAB,count:CAB_C},cab4:{n:"Cabaña 4",items:CAB,count:CAB_C},
+ general:{n:"General",items:["Patio y espacios comunes ordenados","Basura general sacada","Limpió filtro del sistema de riego","Se cortó el pasto (se lavó la máquina luego de usar)","Luces exteriores funcionando","Telarañas retiradas"]}
+};
+const $=id=>document.getElementById(id);
+const K=()=>"chk:"+$("fecha").value;
+const load=()=>{try{return JSON.parse(localStorage.getItem(K()))||{}}catch(e){return {}}};
+const save=s=>{try{localStorage.setItem(K(),JSON.stringify(s))}catch(e){}};
+let cur=null,tab="t";
+$("fecha").value=new Date().toISOString().slice(0,10);
+try{$("quien").value=localStorage.getItem("chk:quien")||""}catch(e){}
+$("quien").oninput=()=>{try{localStorage.setItem("chk:quien",$("quien").value)}catch(e){}};
+$("fecha").onchange=()=>cur?open_(cur):home();
+const cnt=k=>{const s=load()[k]||{};return DATA[k].items.filter((_,i)=>s[i]).length};
+const falta=k=>{const d=DATA[k];if(!d.count)return 0;const c=(load()[k]||{})._c||{};
+  return d.count.filter((x,i)=>x[1]!==null&&c[i]!==undefined&&c[i]!==""&&+c[i]<x[1]).length};
+function home(){
+  cur=null;$("detail").classList.add("hide");$("home").classList.remove("hide");
+  $("menu").innerHTML=Object.keys(DATA).map(k=>{const t=DATA[k].items.length,c=cnt(k),f=falta(k);
+    return `<button class="${f?"warn":c==t?"done":""}" onclick="open_('${k}')">${DATA[k].n}<small>${c}/${t}${c==t?" ✓":""}</small>${f?`<small class="r">Faltan ${f} cosas</small>`:""}</button>`}).join("")
+   +`<div style="grid-column:1/-1;font-weight:700;color:var(--azul);margin-top:8px">Manuales</div>`
+   +Object.keys(MAN).map(m=>`<button onclick="openMan('${m}')">${MAN[m].n}<small>Ver instrucciones</small></button>`).join("");
+}
+const MAN={
+ riego:{n:"Manual: Sistema de riego",intro:"El sistema de riego se mantiene siempre en automático.",
+  titulo:"Para agregar agua a la pileta",
+  steps:["Pasar la llave a selección manual.","Elegir el canal 5.","Marcar el tiempo que querés que salga agua.","Abrir la llave de paso que va a la pileta.","Volver a poner la perilla en automático para que arranque.","Cuando termine, cerrar la llave de paso."],
+  nota:"No olvidar cerrar la llave de paso al terminar."},
+ filtrado:{n:"Manual: Filtrado de la pileta",intro:"Siempre dejar el sistema en filtrar y en skimmer.",
+  titulo:"Para pasar el barrefondo",
+  steps:["Conectar el barrefondo.","Abrir o pasar la llave de paso a barrefondo.","Poner la llave selectora del filtro en desagotar.","Encender la bomba.","Pasar el barrefondo.","Vaciar la canasta.","Volver a dejar el sistema en filtrar y en skimmer."],
+  nota:"Al terminar, el sistema siempre queda en filtrar y skimmer."}
+};
+function openMan(m){
+  const d=MAN[m];cur=null;
+  $("home").classList.add("hide");$("detail").classList.remove("hide");
+  $("detail").innerHTML=`<button class="back" onclick="home()">← Volver</button><h2>${d.n}</h2>
+  <div class="man"><p>${d.intro}</p><h3>${d.titulo}</h3><ol>${d.steps.map(x=>`<li>${x}</li>`).join("")}</ol><p class="nota">${d.nota}</p></div>`;
+}
+function open_(k,t){
+  if(k!==cur)tab="t";if(t)tab=t;cur=k;
+  const d=DATA[k],s=load()[k]||{};
+  $("home").classList.add("hide");$("detail").classList.remove("hide");
+  let h=`<button class="back" onclick="home()">← Volver</button><h2>${d.n}</h2><div style="color:#5a6672">${$("fecha").value}</div>`;
+  if(d.count)h+=`<div class="tabs"><button class="${tab=="t"?"act":""}" onclick="open_('${k}','t')">Tareas</button><button class="${tab=="c"?"act":""}" onclick="open_('${k}','c')">Conteo</button></div>`;
+  if(tab=="t"){
+    h+=`<div class="bar"><div id="pb"></div></div>`+d.items.map((t,i)=>`<label class="item ${s[i]?"on":""}"><input type="checkbox" ${s[i]?"checked":""} onchange="tog(${i},this)">${t}</label>`).join("");
+  }else{
+    const c=s._c||{};
+    h+=`<p style="color:#5a6672;margin:4px 0 10px">Contá lo que hay y anotalo. Rojo = falta.</p>`+d.count.map((x,i)=>`<div class="cnt" id="cr${i}"><div class="nm">${x[0]}<small>${x[1]!==null?"Debe haber: "+x[1]:"Anotar cantidad"}</small><span class="st" id="st${i}"></span></div><input type="number" inputmode="numeric" min="0" value="${c[i]??""}" oninput="setC(${i},this.value)"></div>`).join("");
+  }
+  h+=`<textarea id="obs" placeholder="Observaciones" oninput="obs(this.value)">${s._obs||""}</textarea><div class="acts"><button class="rs" onclick="reset()">Borrar esta lista</button></div>`;
+  $("detail").innerHTML=h;
+  if(tab=="t")prog();else d.count.forEach((_,i)=>paint(i,(s._c||{})[i]));
+}
+function tog(i,el){const a=load(),s=a[cur]||{};s[i]=el.checked;a[cur]=s;save(a);el.parentNode.classList.toggle("on",el.checked);prog()}
+function obs(v){const a=load(),s=a[cur]||{};s._obs=v;a[cur]=s;save(a)}
+function prog(){$("pb").style.width=cnt(cur)/DATA[cur].items.length*100+"%"}
+function setC(i,v){const a=load(),s=a[cur]||{};s._c=s._c||{};s._c[i]=v;a[cur]=s;save(a);paint(i,v)}
+function paint(i,v){
+  const t=DATA[cur].count[i][1],r=$("cr"+i),st=$("st"+i);r.className="cnt";st.textContent="";
+  if(v===undefined||v===""||t===null)return;
+  if(+v>=t)r.classList.add("ok");else{r.classList.add("bad");st.textContent="Faltan "+(t-v)}
+}
+function reset(){if(!confirm("¿Borrar esta lista?"))return;const a=load();delete a[cur];save(a);open_(cur)}
+function enviar(){
+  const a=load();let t=`*Check del complejo* - ${$("fecha").value}\nResponsable: ${$("quien").value||"-"}\n`;
+  for(const k in DATA){const s=a[k]||{},d=DATA[k];t+=`\n*${d.n}* (${cnt(k)}/${d.items.length})\n`;
+    d.items.forEach((x,i)=>{t+=(s[i]?"✅ ":"⬜ ")+x+"\n"});
+    if(d.count){const c=s._c||{},fl=[],ok=[];
+      d.count.forEach((x,i)=>{const v=c[i];if(v===undefined||v==="")return;
+        if(x[1]!==null&&+v<x[1])fl.push(`⚠️ ${x[0]}: ${v}/${x[1]}`);else ok.push(`${x[0]}: ${v}`)});
+      if(fl.length||ok.length)t+="Conteo:\n"+fl.join("\n")+(fl.length?"\n":"")+(ok.length?ok.join(", ")+"\n":"")}
+    if(s._obs)t+="Obs: "+s._obs+"\n"}
+  if(navigator.share){navigator.share({text:t}).catch(()=>{})}
+  else window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank");
+}
+home();
+</script>
+</body>
+</html>
